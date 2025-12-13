@@ -1,219 +1,258 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-.container {
-  width: 80%;
-  margin: 0 auto;
-  position: relative;
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-.nav-background {
-  background-color: #f5f5f6;
-  padding: 20px 0;
-  /* position: relative; */
-}
-.navigation {
-  display: flex;
-  /* justify-content: space-between; */
-  margin-left: 50px;
-  gap: 70px;
-  align-items: center;
-}
-.menu {
-  display: none;
-}
-.menu-open {
-  display: none;
-  background-color: #833ae0;
-  position: fixed;
-  width: 25%;
-  padding: 20px;
-  top: 60px;
-  right: 0;
-}
-.menu-open ul {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-}
-.menu-open ul li {
-  color: white;
-}
-.menu-open ul li:first-child {
-  text-decoration: 1px white underline;
-}
-ul {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-li {
-  font: 500 13px Roboto;
-  color: #959ba4;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-li:first-child {
-  font-weight: 600;
-  color: black;
-}
-.navigation-btn a {
-  background-color: white;
-  padding: 12px;
-  color: black;
-  text-decoration: none;
-  font: 500 13px Roboto;
-  text-transform: uppercase;
-  margin-left: 40px;
-}
-.main {
-  display: flex;
-  flex-direction: column;
-  margin: 60px auto 40px;
-  width: 55%;
-}
-.header {
-  font: bold 36px Roboto;
-}
-.converter {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 30px;
-  width: 100%;
+.container{
+  width:80%;
+  margin:0 auto;
+  position:relative;
 }
 
-.buttons {
-  display: flex;
-  justify-content: space-between;
-  margin: 20px 0;
-  width: 300px;
-}
-.buttons p {
-  border: 1px solid #e5e5e5;
-  padding: 10px 25px;
-  border-right: 0;
-  color: #c6c6c6;
-  font: 400 14px Roboto;
-  cursor: pointer;
-}
-.buttons p:last-child {
-  border-right: 1px solid #e5e5e5;
-  border-radius: 0 5px 5px 0;
-}
-.converter-top {
-  font: 400 14px Roboto;
-  color: #9f9f9f;
+
+.nav-background{
+  background-color:#f5f5f6;
+  padding:20px 0;
 }
 
-.buttons p:first-child {
-  border-radius: 5px 0 0 5px;
+.navigation{
+  display:flex;
+  align-items:center;
+  margin-left:50px;
+  gap:70px;
 }
 
-.active-button {
-  color: white !important;
-  background-color: #833ae0;
+ul{
+  display:flex;
+  gap:30px;
+  align-items:center;
 }
 
-.result {
-  border: 1px solid #e5e5e5;
-  padding: 20px 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 310px;
-  border-radius: 5px;
+li{
+  font:500 13px Roboto;
+  color:#959ba4;
+  cursor:pointer;
+  text-transform:uppercase;
 }
-.result input {
-  font: bold 36px Roboto;
-  border: none;
-  outline: none;
+
+li:first-child{
+  color:black;
+  font-weight:600;
 }
-.change-f {
-  color: #c6c6c6;
-  font: 400 14px Roboto;
+
+.navigation-btn a{
+  background:white;
+  padding:12px;
+  margin-left:40px;
+  text-decoration:none;
+  color:black;
+  font:500 13px Roboto;
 }
+
+/* burger */
+.menu{
+  display:none;
+}
+
+.menu-open{
+  display:none;
+  background:#833ae0;
+  position:fixed;
+  right:0;
+  top:60px;
+  width:25%;
+  padding:20px;
+}
+
+.menu-open ul{
+  display:flex;
+  flex-direction:column;
+}
+
+.menu-open li{
+  color:white;
+}
+
+.menu-open li:first-child{
+  text-decoration:underline;
+}
+
+.main{
+  width:55%;
+  margin:60px auto 40px;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  font:bold 36px Roboto;
+}
+
+.converter{
+  display:flex;
+  justify-content:space-between;
+  margin-top:30px;
+}
+
+
+.buttons{
+  display:flex;
+  width:300px;
+  margin:20px 0;
+}
+
+.buttons p{
+  border:1px solid #e5e5e5;
+  border-right:none;
+  padding:10px 25px;
+  font:400 14px Roboto;
+  color:#c6c6c6;
+  cursor:pointer;
+}
+
+.buttons p:first-child{
+  border-radius:5px 0 0 5px;
+}
+
+.buttons p:last-child{
+  border-right:1px solid #e5e5e5;
+  border-radius:0 5px 5px 0;
+}
+
+.active-button{
+  background:#833ae0;
+  color:white !important;
+}
+
+.converter-top{
+  font:400 14px Roboto;
+  color:#9f9f9f;
+}
+
+
+.result{
+  border:1px solid #e5e5e5;
+  padding:20px 25px;
+  width:310px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  border-radius:5px;
+}
+
+.result input{
+  font:bold 36px Roboto;
+  border:none;
+  outline:none;
+}
+
+.change-f{
+  color:#c6c6c6;
+  font:400 14px Roboto;
+}
+
 
 .no-internet{
-  display: none;
-  text-align: center;
-  color: red;
-  font: 500 30px Roboto;
-  margin-top: 40px;
+  display:none;
+  color:red;
+  text-align:center;
+  font:500 30px Roboto;
+  margin-top:40px;
 }
+
 .internet{
-  display: none;
-  text-align: center;
-  color: green;
-  font: 500 30px Roboto;
-  margin-top: 40px;
-}
-@media (max-width: 1170px) {
-  .header {
-    font-size: 30px;
-  }
-  .nav {
-    gap: 30px;
-  }
-  .main {
-    width: 60%;
-  }
+  display:none;
+  color:green;
+  text-align:center;
+  font:500 30px Roboto;
+  margin-top:40px;
 }
 
-@media (max-width: 1060px) {
-  /* Burger menu */
 
+@media (min-width: 360px) and (max-width: 767px) {
   ul {
     display: none;
   }
+
   .menu {
     display: block;
     font-size: 20px;
   }
-  .nav {
-    gap: 0;
-    justify-content: space-between;
-  }
-  .nav-right {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-  }
-  .buttons p {
-    padding: 10px 20px;
-  }
-  .buttons {
-    width: 270px;
-  }
-  .result {
-    width: 270px;
-  }
-  .main {
-    width: 65%;
-  }
-}
-@media (max-width: 840px) {
+
   .converter {
     flex-direction: column;
     gap: 50px;
   }
-  .menu-open {
-    width: 45%;
-  }
-}
-@media (max-width: 400px) {
+
   .buttons {
     width: 240px;
   }
+
   .buttons p {
     padding: 10px 15px;
   }
+
   .result {
     width: 240px;
   }
+
   .menu-open {
     width: 50%;
+  }
+
+  .main {
+    width: 90%;
+  }
+
+  .header {
+    font-size: 26px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  ul {
+    display: none;
+  }
+
+  .menu {
+    display: block;
+    font-size: 20px;
+  }
+
+  .buttons {
+    width: 270px;
+  }
+
+  .buttons p {
+    padding: 10px 20px;
+  }
+
+  .result {
+    width: 270px;
+  }
+
+  .menu-open {
+    width: 45%;
+  }
+
+  .main {
+    width: 70%;
+  }
+
+  .header {
+    font-size: 30px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .main {
+    width: 60%;
+  }
+
+  .header {
+    font-size: 36px;
   }
 }
