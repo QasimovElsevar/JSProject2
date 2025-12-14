@@ -1,21 +1,27 @@
-const menu = document.querySelector(".menu");
-const menuOpen = document.querySelector(".menu-open");
 const buttonsLeft = document.querySelectorAll(".buttons-left p");
 const buttonsRight = document.querySelectorAll(".buttons-right p");
-const changeLeft = document.querySelector(".change-left");
-const changeRight = document.querySelector(".change-right");
 const inputLeft = document.querySelector(".input-left");
 const inputRight = document.querySelector(".input-right");
+const changeLeft = document.querySelector(".change-left");
+const changeRight = document.querySelector(".change-right");
 const noInternetElement = document.querySelector(".no-internet");
 const internetElement = document.querySelector(".internet");
+const menu = document.querySelector(".menu");
+const menuOpen = document.querySelector(".menu-open");
  //  STATE
-const API_KEY = "e2ce74fd7513a2726887672ec8f5bedb";
+const API_KEY = "72ac0f385fa66ee2549a2719a998f3bc";
 let lastChanged = null;
-let pendingConversion = null;
+let savedConvert = null;
 
 // EVENTS
 
 menu.addEventListener("click", toggleMenu);
+
+inputLeft.addEventListener("input", () => handleInput("left"));
+inputRight.addEventListener("input", () => handleInput("right"));
+
+window.addEventListener("offline", handleOffline);
+window.addEventListener("online", handleOnline);
 
 buttonsLeft.forEach(btn =>
   btn.addEventListener("click", () => handleCurrencyChange("left", btn))
@@ -24,12 +30,6 @@ buttonsLeft.forEach(btn =>
 buttonsRight.forEach(btn =>
   btn.addEventListener("click", () => handleCurrencyChange("right", btn))
 );
-
-inputLeft.addEventListener("input", () => handleInput("left"));
-inputRight.addEventListener("input", () => handleInput("right"));
-
-window.addEventListener("offline", handleOffline);
-window.addEventListener("online", handleOnline);
 
 //   UI FUNCTIONS
 
@@ -55,28 +55,42 @@ window.addEventListener("resize", () => {
  //  INPUT 
 
 function handleInput(side) {
-  const input = side === "left" ? inputLeft : inputRight;
-  const otherInput = side === "left" ? inputRight : inputLeft;
+  let input;
+  let otherInput;
+  let from;
+  let to;
+
+  if (side === "left") {
+    input = inputLeft;
+    otherInput = inputRight;
+    from = getLeftCurrency();
+    to = getRightCurrency();
+  } else {
+    input = inputRight;
+    otherInput = inputLeft;
+    from = getRightCurrency();
+    to = getLeftCurrency();
+  }
 
   input.value = cleanInput(input.value);
   lastChanged = side;
-
-  const from = side === "left" ? getLeftCurrency() : getRightCurrency();
-  const to = side === "left" ? getRightCurrency() : getLeftCurrency();
-
   if (!navigator.onLine && from !== to) {
     otherInput.value = "";
-    pendingConversion = { side, value: input.value, from, to };
+    savedConvert = {
+      side: side,
+      value: input.value,
+      from: from,
+      to: to
+    };
     return;
   }
-
   if (from === to) {
     otherInput.value = input.value;
     update(from, to);
     return;
   }
 
-  convertCurrency(from, to, input.value).then(result => {
+  convertCurrency(from, to, input.value).then(function (result) {
     otherInput.value = cleanInput(String(result));
   });
 }
@@ -137,43 +151,20 @@ function convertCurrency(from, to, amount) {
     .catch(() => "error");
 }
 
-//   HELPERS
-
-function getLeftCurrency() {
-  return document.querySelector(".buttons-left .active-button").textContent;
-}
-
-function getRightCurrency() {
-  return document.querySelector(".buttons-right .active-button").textContent;
-}
-
-function syncInputs() {
-  if (lastChanged === "left") {
-    inputRight.value = inputLeft.value;
-  } else {
-    inputLeft.value = inputRight.value;
-  }
-}
-
-function setRateText(l, r, from, to) {
-  changeLeft.textContent = `1 ${from} = ${l} ${to}`;
-  changeRight.textContent = `1 ${to} = ${r} ${from}`;
-}
-
 //   INPUT CLEAN
 
 function cleanInput(value) {
-  value = value
-    .replace(/\s/g, "")
-    .replace(/[^0-9.,]/g, "")
-    .replace(/,/g, ".");
-  value = oneDot(value);
-  if (value.startsWith(".")) value = "0" + value;
+  value = value.replace(/,/g, ".").replace(/[^\d.]/g, "");
 
-  const parts = value.split(".");
-  if (parts.length === 2) parts[1] = parts[1].slice(0, 5);
-  return parts.join(".");
+  const split = value.split(".");
+  if (split.length > 1) {
+    split[1] = split[1].slice(0, 5);
+    value = split[0] + "." + split[1];
+  }
+
+  return value.startsWith(".") ? "0" + value : value;
 }
+
 
 function oneDot(value) {
   const i = value.indexOf(".");
@@ -197,12 +188,35 @@ function handleOnline() {
     internetElement.style.display = "none";
   }, 3000);
 
-  if (pendingConversion) {
-    const { side, value, from, to } = pendingConversion;
+  if (savedConvert) {
+    const { side, value, from, to } = savedConvert;
     convertCurrency(from, to, value).then(result => {
       if (side === "left") inputRight.value = cleanInput(String(result));
       else inputLeft.value = cleanInput(String(result));
-      pendingConversion = null;
+      savedConvert = null;
     });
   }
+}
+
+//   HELPERS
+
+function getLeftCurrency() {
+  return document.querySelector(".buttons-left .active-button").textContent;
+}
+
+function getRightCurrency() {
+  return document.querySelector(".buttons-right .active-button").textContent;
+}
+
+function syncInputs() {
+  if (lastChanged === "left") {
+    inputRight.value = inputLeft.value;
+  } else {
+    inputLeft.value = inputRight.value;
+  }
+}
+
+function setRateText(l, r, from, to) {
+  changeLeft.textContent = `1 ${from} = ${l} ${to}`;
+  changeRight.textContent = `1 ${to} = ${r} ${from}`;
 }
