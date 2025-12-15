@@ -9,7 +9,7 @@ const internetElement = document.querySelector(".internet");
 const menu = document.querySelector(".menu");
 const menuOpen = document.querySelector(".menu-open");
 
-const API_KEY = "7b83f04bbf434bfe5e9da4b9f0c98047";
+const API_KEY = "d46a545a28af1ca94e84750374f204fe";
 let lastChanged = null;
 let savedConvert = null;
 let inputTimer = null;
