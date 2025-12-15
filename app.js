@@ -1,164 +1,186 @@
-let mobileToggle = document.querySelector(".mobile-toggle");
-let mobileMenu = document.querySelector(".mobile-menu");
-let selectorSource = document.querySelectorAll(".selector-source p");
-let selectorTarget = document.querySelectorAll(".selector-target p");
-let rateSource = document.querySelector(".rate-source");
-let rateTarget = document.querySelector(".rate-target");
-let amountSource = document.querySelector(".amount-source");
-let amountTarget = document.querySelector(".amount-target");
-let recentSide = null;
-const ACCESS_KEY = "7b83f04bbf434bfe5e9da4b9f0c98047";
-let queuedExchange = null;
+const buttonsLeft = document.querySelectorAll(".buttons-left p");
+const buttonsRight = document.querySelectorAll(".buttons-right p");
+const inputLeft = document.querySelector(".input-left");
+const inputRight = document.querySelector(".input-right");
+const changeLeft = document.querySelector(".change-left");
+const changeRight = document.querySelector(".change-right");
+const noInternetElement = document.querySelector(".no-internet");
+const internetElement = document.querySelector(".internet");
+const menu = document.querySelector(".menu");
+const menuOpen = document.querySelector(".menu-open");
 
-const offlineMsg = document.querySelector(".offline-message");
-const onlineMsg = document.querySelector(".online-message");
+const API_KEY = "7b83f04bbf434bfe5e9da4b9f0c98047";
+let lastChanged = null;
+let savedConvert = null;
+let inputTimer = null;
 
-let debounceTimer = null;
+menu.addEventListener("click", toggleMenu);
 
-window.addEventListener("offline", function () {
-  offlineMsg.style.display = "block";
-  onlineMsg.style.display = "none";
-});
+inputLeft.addEventListener("input", () => handleInput("left"));
+inputRight.addEventListener("input", () => handleInput("right"));
 
-window.addEventListener("online", function () {
-  offlineMsg.style.display = "none";
-  onlineMsg.style.display = "block";
-  setTimeout(function () {
-    onlineMsg.style.display = "none";
-  }, 3000);
+window.addEventListener("offline", handleOffline);
+window.addEventListener("online", handleOnline);
 
-  if (queuedExchange) {
-    const { side, value, from, to } = queuedExchange;
-    performExchange(from, to, value).then((data) => {
-      if (side === "source") {
-        amountTarget.value = sanitizeValue(String(data));
-      } else {
-        amountSource.value = sanitizeValue(String(data));
-      }
-      queuedExchange = null;
-    });
+buttonsLeft.forEach(btn =>
+  btn.addEventListener("click", () => handleCurrencyChange("left", btn))
+);
+
+buttonsRight.forEach(btn =>
+  btn.addEventListener("click", () => handleCurrencyChange("right", btn))
+);
+
+window.addEventListener("resize", () => {
+  if (window.innerWidth >= 1024) {
+    menuOpen.style.display = "none";
   }
 });
 
-function performExchange(from, to, amount) {
-  return fetch(
-    `https://api.exchangerate.host/convert?access_key=${ACCESS_KEY}&from=${from}&to=${to}&amount=${amount}`
+function toggleMenu() {
+  menuOpen.style.display =
+    menuOpen.style.display === "block" ? "none" : "block";
+}
+
+function handleCurrencyChange(side, btn) {
+  const group = side === "left" ? buttonsLeft : buttonsRight;
+  group.forEach(b => b.classList.remove("active-button"));
+  btn.classList.add("active-button");
+  update(getLeftCurrency(), getRightCurrency());
+}
+
+function handleInput(side) {
+  let input;
+  let otherInput;
+  let from;
+  let to;
+
+  if (side === "left") {
+    input = inputLeft;
+    otherInput = inputRight;
+    from = getLeftCurrency();
+    to = getRightCurrency();
+  } else {
+    input = inputRight;
+    otherInput = inputLeft;
+    from = getRightCurrency();
+    to = getLeftCurrency();
+  }
+
+  input.value = cleanInput(input.value);
+  lastChanged = side;
+
+  if (!navigator.onLine && from !== to) {
+    otherInput.value = "";
+    savedConvert = { side, value: input.value, from, to };
+    return;
+  }
+
+  if (from === to) {
+    otherInput.value = input.value;
+    update(from, to);
+    return;
+  }
+
+  clearTimeout(inputTimer);
+
+  inputTimer = setTimeout(() => {
+    convertCurrency(from, to, input.value).then(result => {
+      otherInput.value = cleanInput(String(result));
+    });
+  }, 400);
+}
+
+function update(from, to) {
+  if (from === to) {
+    changeLeft.textContent = `1 ${from} = 1 ${to}`;
+    changeRight.textContent = `1 ${to} = 1 ${from}`;
+    syncInputs();
+    return;
+  }
+
+  fetch(
+    `https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=1&access_key=${API_KEY}`
   )
     .then(res => res.json())
-    .then(data => data.success ? data.result : "error")
+    .then(data => {
+      if (!data.success) return;
+
+      const rate = data.result;
+
+      changeLeft.textContent = `1 ${from} = ${rate.toFixed(5)} ${to}`;
+      changeRight.textContent = `1 ${to} = ${(1 / rate).toFixed(5)} ${from}`;
+
+      if (lastChanged === "left") {
+        inputRight.value = cleanInput(
+          String((parseFloat(inputLeft.value || 0) * rate).toFixed(5))
+        );
+      }
+
+      if (lastChanged === "right") {
+        inputLeft.value = cleanInput(
+          String((parseFloat(inputRight.value || 0) / rate).toFixed(5))
+        );
+      }
+    });
+}
+
+function convertCurrency(from, to, amount) {
+  return fetch(
+    `https://api.exchangerate.host/convert?from=${from}&to=${to}&amount=${amount}&access_key=${API_KEY}`
+  )
+    .then(res => res.json())
+    .then(data => (data.success ? data.result : "error"))
     .catch(() => "error");
 }
 
-function sanitizeValue(value) {
+function cleanInput(value) {
   value = value.replace(/,/g, ".").replace(/[^\d.]/g, "");
+
   let dotIndex = value.indexOf(".");
   if (dotIndex !== -1) {
     let left = value.slice(0, dotIndex + 1);
     let right = value.slice(dotIndex + 1).replace(/\./g, "").slice(0, 5);
     value = left + right;
   }
+
   return value.startsWith(".") ? "0" + value : value;
 }
 
-mobileToggle.addEventListener("click", () => {
-  mobileMenu.style.display =
-    mobileMenu.style.display === "block" ? "none" : "block";
-});
+function handleOffline() {
+  noInternetElement.style.display = "block";
+  internetElement.style.display = "none";
+}
 
-selectorSource.forEach((item) => {
-  item.addEventListener("click", () => {
-    selectorSource.forEach(b => b.classList.remove("selected-currency"));
-    item.classList.add("selected-currency");
-    refreshRates(getSource(), getTarget());
-  });
-});
+function handleOnline() {
+  noInternetElement.style.display = "none";
+  internetElement.style.display = "block";
 
-selectorTarget.forEach((item) => {
-  item.addEventListener("click", () => {
-    selectorTarget.forEach(b => b.classList.remove("selected-currency"));
-    item.classList.add("selected-currency");
-    refreshRates(getSource(), getTarget());
-  });
-});
+  setTimeout(() => {
+    internetElement.style.display = "none";
+  }, 3000);
 
-function refreshRates(from, to) {
-  if (from === to) {
-    rateSource.textContent = `1 ${from} = 1 ${to}`;
-    rateTarget.textContent = `1 ${to} = 1 ${from}`;
-    if (recentSide === "source") amountTarget.value = amountSource.value;
-    else amountSource.value = amountTarget.value;
-    return;
+  if (savedConvert) {
+    const { side, value, from, to } = savedConvert;
+    convertCurrency(from, to, value).then(result => {
+      if (side === "left") inputRight.value = cleanInput(String(result));
+      else inputLeft.value = cleanInput(String(result));
+      savedConvert = null;
+    });
   }
-
-  fetch(
-    `https://api.exchangerate.host/convert?access_key=${ACCESS_KEY}&from=${from}&to=${to}&amount=1`
-  )
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) return;
-      let rate = data.result;
-      rateSource.textContent = `1 ${from} = ${rate.toFixed(5)} ${to}`;
-      rateTarget.textContent = `1 ${to} = ${(1 / rate).toFixed(5)} ${from}`;
-
-      if (recentSide === "source") {
-        amountTarget.value = sanitizeValue(
-          String((parseFloat(amountSource.value || 0) * rate).toFixed(5))
-        );
-      }
-      if (recentSide === "target") {
-        amountSource.value = sanitizeValue(
-          String((parseFloat(amountTarget.value || 0) / rate).toFixed(5))
-        );
-      }
-    });
 }
 
-amountSource.addEventListener("input", () => {
-  amountSource.value = sanitizeValue(amountSource.value);
-  recentSide = "source";
-  handleDebouncedConvert();
-});
-
-amountTarget.addEventListener("input", () => {
-  amountTarget.value = sanitizeValue(amountTarget.value);
-  recentSide = "target";
-  handleDebouncedConvert();
-});
-
-function handleDebouncedConvert() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const from = recentSide === "source" ? getSource() : getTarget();
-    const to = recentSide === "source" ? getTarget() : getSource();
-    const value = recentSide === "source" ? amountSource.value : amountTarget.value;
-
-    if (!navigator.onLine && from !== to) {
-      queuedExchange = { side: recentSide, value, from, to };
-      if (recentSide === "source") amountTarget.value = "";
-      else amountSource.value = "";
-      return;
-    }
-
-    if (from === to) {
-      if (recentSide === "source") amountTarget.value = value;
-      else amountSource.value = value;
-      return;
-    }
-
-    performExchange(from, to, value).then(result => {
-      if (recentSide === "source") {
-        amountTarget.value = sanitizeValue(String(result));
-      } else {
-        amountSource.value = sanitizeValue(String(result));
-      }
-    });
-  }, 400);
+function getLeftCurrency() {
+  return document.querySelector(".buttons-left .active-button").textContent;
 }
 
-function getSource() {
-  return document.querySelector(".selector-source .selected-currency").textContent;
+function getRightCurrency() {
+  return document.querySelector(".buttons-right .active-button").textContent;
 }
 
-function getTarget() {
-  return document.querySelector(".selector-target .selected-currency").textContent;
+function syncInputs() {
+  if (lastChanged === "left") {
+    inputRight.value = inputLeft.value;
+  } else {
+    inputLeft.value = inputRight.value;
+  }
 }
